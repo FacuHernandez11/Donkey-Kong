@@ -2,6 +2,7 @@ import pygame
 import sys
 import subprocess
 
+pygame.init()  # <-- ¡Inicializa Pygame antes de todo!
 
 ANCHO, ALTO = 1280, 720
 pantalla = pygame.display.set_mode((ANCHO, ALTO))
@@ -67,6 +68,5 @@ def menu():
         pygame.display.flip()
 
 if __name__ == "__main__":
-    pygame.init()
     menu()
 
