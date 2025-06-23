@@ -1,20 +1,21 @@
 import pygame
+import random
 from configuracion import ANCHO, ALTO, BLANCO, FPS
 from jugador import Jugador
 from nivel import dibujar as dibujar_nivel
 from personaje import donkey_kong, princesa
-from barril import Barril
+from barril import Barril, BarrilRapido, BarrilLento, BarrilRebotador
 
 pygame.init()
 pantalla = pygame.display.set_mode((ANCHO, ALTO))
-pygame.display.set_caption("Donkey Kong")
+pygame.display.set_caption("Donkey Kong - Escaleras y Barriles")
 
 reloj = pygame.time.Clock()
 jugador = Jugador(100, ALTO - 80)
 barriles = []
 
 SPAWN_BARRIL = pygame.USEREVENT + 1
-pygame.time.set_timer(SPAWN_BARRIL, 10000000)  
+pygame.time.set_timer(SPAWN_BARRIL, 1500)
 
 ejecutando = True
 while ejecutando:
@@ -25,9 +26,8 @@ while ejecutando:
         if evento.type == pygame.QUIT:
             ejecutando = False
         elif evento.type == SPAWN_BARRIL:
-            
-            barriles.append(Barril())
-            barriles.append(Barril())
+            tipo = random.choice([Barril, BarrilRapido, BarrilLento, BarrilRebotador])
+            barriles.append(tipo())
 
     teclas = pygame.key.get_pressed()
     if teclas[pygame.K_SPACE]:
@@ -46,7 +46,7 @@ while ejecutando:
         if b.colisiona_con(jugador.rect):
             print("¡Perdiste por barril!")
             ejecutando = False
-        if b.rect.top > ALTO:
+        if b.esta_fuera_de_pantalla():
             barriles.remove(b)
 
     if jugador.rect.colliderect(princesa["rect"]):
