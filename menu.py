@@ -8,11 +8,10 @@ ANCHO, ALTO = 1280, 720
 pantalla = pygame.display.set_mode((ANCHO, ALTO))
 pygame.display.set_caption("Menú de Juegos")
 
-# Carga la imagen del menú (ajusta el nombre si es necesario)
-menu_img = pygame.image.load("menu.png")
+menu_img = pygame.image.load("img/menu.png")
 menu_img = pygame.transform.scale(menu_img, (ANCHO, ALTO))
 
-# Coordenadas de los botones "START" según la imagen
+
 boton_donkey = pygame.Rect(200, 500, 200, 80)
 boton_diddy = pygame.Rect(800, 500, 200, 80)
 
