@@ -4,7 +4,7 @@ from nivel import plataformas, escaleras
 
 class Jugador:
     def __init__(self, x, y):
-        self.rect = pygame.Rect(x, y, 25, 35)
+        self.rect = pygame.Rect(x, y, 20, 30)
         self.vel_y = 0
         self.saltando = False
         self.en_escalera = False
@@ -64,11 +64,8 @@ class Jugador:
 
             apoyado = False
             for plat in plataformas:
-                rect_prediccion = self.rect.copy()
-                rect_prediccion.y += self.vel_y
-
-                if rect_prediccion.colliderect(plat) and self.vel_y >= 0:
-                    if self.rect.bottom <= plat.top + 10:
+                if self.vel_y >= 0 and self.rect.bottom <= plat.top + 15 and self.rect.right > plat.left and self.rect.left < plat.right:
+                    if self.rect.bottom + self.vel_y >= plat.top:
                         self.rect.bottom = plat.top
                         self.vel_y = 0
                         self.saltando = False
@@ -85,6 +82,12 @@ class Jugador:
                             self.saltando = False
                             apoyado = True
                             break
+
+            from configuracion import ALTO
+            if self.rect.top > ALTO:
+                self.rect.bottom = plataformas[-1].top
+                self.vel_y = 0
+                self.saltando = False
 
     def subir_escalera(self, escalera):
         if escalera is None:

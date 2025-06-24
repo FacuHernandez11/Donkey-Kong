@@ -2,7 +2,7 @@ import pygame
 import random
 from configuracion import ANCHO, ALTO, BLANCO, FPS
 from jugador import Jugador
-from nivel import dibujar as dibujar_nivel
+from nivel import dibujar as dibujar_nivel, crear_nivel, plataformas
 from personaje import donkey_kong, princesa
 from barril import Barril, BarrilRapido, BarrilLento, BarrilRebotador
 
@@ -23,13 +23,35 @@ def menu_principal():
             if evento.type == pygame.KEYDOWN and evento.key == pygame.K_SPACE:
                 ejecutando_menu = False
 
-def juego():
+def posicion_inicial_jugador():
+    altura_jugador = 30
+    return plataformas[-1].left + 100, plataformas[-1].top - altura_jugador
+
+def juego(nivel=1):
     reloj = pygame.time.Clock()
-    jugador = Jugador(100, ALTO - 80)
+    
+    crear_nivel(nivel)
+
+    x, y = posicion_inicial_jugador()
+    jugador = Jugador(x, y)
     barriles = []
 
     SPAWN_BARRIL = pygame.USEREVENT + 1
-    pygame.time.set_timer(SPAWN_BARRIL, 1500)
+    if nivel == 1:
+        pygame.time.set_timer(SPAWN_BARRIL, 1000)
+        barril_tipos = [Barril, BarrilRapido, BarrilLento, BarrilRebotador]
+        fondo = BLANCO
+    else:
+        pygame.time.set_timer(SPAWN_BARRIL, 600)
+        barril_tipos = [BarrilRapido, BarrilRebotador, BarrilRebotador, Barril]
+        fondo = (200, 200, 255)
+
+    if nivel == 1:
+        donkey_kong["rect"].x, donkey_kong["rect"].y = 150, 10
+        princesa["rect"].x, princesa["rect"].y = 700, 10
+    else:
+        donkey_kong["rect"].x, donkey_kong["rect"].y = 50, 180
+        princesa["rect"].x, princesa["rect"].y = 700, 270
 
     imagen_nivel_superado = pygame.image.load("img/pantalla1.gif")
     imagen_nivel_superado = pygame.transform.scale(imagen_nivel_superado, (ANCHO, ALTO))
@@ -38,17 +60,20 @@ def juego():
 
     resultado = None
     ejecutando = True
+    pantalla = pygame.display.set_mode((ANCHO, ALTO))
+
     while ejecutando:
         reloj.tick(FPS)
-        pantalla.fill(BLANCO)
+        pantalla.fill(fondo)
 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 pygame.quit()
                 exit()
             elif evento.type == SPAWN_BARRIL:
-                tipo = random.choice([Barril, BarrilRapido, BarrilLento, BarrilRebotador])
-                barriles.append(tipo())
+                for _ in range(2 if nivel == 1 else 3):
+                    tipo = random.choice(barril_tipos)
+                    barriles.append(tipo())
 
         teclas = pygame.key.get_pressed()
         if teclas[pygame.K_SPACE]:
@@ -77,69 +102,27 @@ def juego():
         if jugador.rect.colliderect(princesa["rect"]):
             pantalla.blit(imagen_nivel_superado, (0, 0))
             pygame.display.flip()
-            pygame.time.wait(3000)
+            pygame.time.wait(2000)
             print("¡Ganaste!")
             ejecutando = False
             resultado = "ganaste"
 
         pygame.display.flip()
+
     return resultado
 
 
 pygame.init()
 pantalla = pygame.display.set_mode((ANCHO, ALTO))
+nivel_actual = 1
+
 while True:
-    menu_principal()  
-    resultado = juego()
-
-
-pygame.init()
-pantalla = pygame.display.set_mode((ANCHO, ALTO))
-pygame.display.set_caption("Donkey Kong - Escaleras y Barriles")
-
-reloj = pygame.time.Clock()
-jugador = Jugador(100, ALTO - 80)
-barriles = []
-
-SPAWN_BARRIL = pygame.USEREVENT + 1
-pygame.time.set_timer(SPAWN_BARRIL, 1500)
-
-ejecutando = True
-while ejecutando:
-    reloj.tick(FPS)
-    pantalla.fill(BLANCO)
-
-    for evento in pygame.event.get():
-        if evento.type == pygame.QUIT:
-            ejecutando = False
-        elif evento.type == SPAWN_BARRIL:
-            tipo = random.choice([Barril, BarrilRapido, BarrilLento, BarrilRebotador])
-            barriles.append(tipo())
-
-    teclas = pygame.key.get_pressed()
-    if teclas[pygame.K_SPACE]:
-        jugador.saltar()
-
-    jugador.actualizar(teclas)
-
-    dibujar_nivel(pantalla)
-    jugador.dibujar(pantalla)
-    pygame.draw.rect(pantalla, donkey_kong["color"], donkey_kong["rect"])
-    pygame.draw.rect(pantalla, princesa["color"], princesa["rect"])
-
-    for b in barriles[:]:
-        b.actualizar()
-        b.dibujar(pantalla)
-        if b.colisiona_con(jugador.rect):
-            print("¡Perdiste por barril!")
-            ejecutando = False
-        if b.esta_fuera_de_pantalla():
-            barriles.remove(b)
-
-    if jugador.rect.colliderect(princesa["rect"]):
-        print("¡Ganaste!")
-        ejecutando = False
-
-    pygame.display.flip()
-
-pygame.quit()
+    menu_principal()
+    resultado = juego(nivel_actual)
+    if resultado == "ganaste" and nivel_actual == 1:
+        nivel_actual = 2
+    elif resultado == "ganaste" and nivel_actual == 2:
+        print("¡Completaste todos los niveles!")
+        break
+    else:
+        nivel_actual = 1
