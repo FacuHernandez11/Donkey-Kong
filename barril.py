@@ -1,17 +1,29 @@
 import pygame
 import random
 from configuracion import NARANJA, GRAVEDAD
-from nivel import plataformas, direcciones_plataformas
+from nivel import plataformas, direcciones_plataformas, escaleras
 from personaje import donkey_kong
 
 class Barril:
     COLOR = NARANJA
 
     def __init__(self):
-        self.plat_idx = random.choice([0, 1])
-        plat = plataformas[self.plat_idx]
-        x = donkey_kong["rect"].centerx if self.plat_idx == 0 else plat.left + 10
-        self.rect = pygame.Rect(x, plat.top - 20, 20, 20)
+        # Posición inicial: desde Donkey Kong
+        x = donkey_kong["rect"].centerx
+        y = donkey_kong["rect"].bottom
+        self.rect = pygame.Rect(x, y, 20, 20)
+
+        # Forzar que comience en la plataforma justo debajo de Donkey Kong
+        self.plat_idx = None
+        for i, plat in enumerate(plataformas):
+            if plat.top > y and plat.left <= x <= plat.right:
+                self.plat_idx = i
+                break
+
+        if self.plat_idx is None:
+            raise Exception("No se encontró plataforma válida debajo de Donkey Kong para el barril.")
+
+        self.rect.bottom = plataformas[self.plat_idx].top
         self.dir = direcciones_plataformas[self.plat_idx]
         self.vel_y = 0
         self.fall = False
@@ -27,7 +39,7 @@ class Barril:
             self.vel_y += GRAVEDAD
             self.rect.y += self.vel_y
 
-            next_idx = self.plat_idx + 1  
+            next_idx = self.plat_idx + 1
             if next_idx < len(plataformas):
                 next_plat = plataformas[next_idx]
                 if self.rect.bottom >= next_plat.top:
@@ -40,8 +52,19 @@ class Barril:
                     self.fall = False
                     self.vel_y = 0
         else:
+            # Movimiento horizontal
             self.rect.x += self.velocidad_horizontal * self.dir
             plat = plataformas[self.plat_idx]
+
+            # Bajar por escalera si es barril naranja
+            for escalera in escaleras:
+                if escalera.left <= self.rect.centerx <= escalera.right:
+                    if self.rect.bottom == escalera.top:
+                        if random.random() < 0.02:  # 2% chance
+                            self.fall = True
+                            self.vel_y = 2
+                            return
+
             if self.rect.left < plat.left or self.rect.right > plat.right:
                 if self.dir == 1:
                     self.rect.right = plat.right
@@ -62,6 +85,7 @@ class Barril:
     def esta_fuera_de_pantalla(self):
         return self.rect.top > 600
 
+
 class BarrilRapido(Barril):
     COLOR = (255, 0, 0)
 
@@ -69,12 +93,14 @@ class BarrilRapido(Barril):
         super().__init__()
         self.velocidad_horizontal = 6
 
+
 class BarrilLento(Barril):
     COLOR = (0, 255, 0)
 
     def __init__(self):
         super().__init__()
         self.velocidad_horizontal = 2
+
 
 class BarrilRebotador(Barril):
     COLOR = (0, 0, 255)
@@ -104,7 +130,6 @@ class BarrilRebotador(Barril):
                     self.vel_y = 0
         else:
             self.rect.x += self.velocidad_horizontal * self.dir
-            
             if not self.rebotando and self.rect.bottom == plataformas[self.plat_idx].top:
                 self.vel_y = self.rebote_fuerza
                 self.rebotando = True

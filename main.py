@@ -2,14 +2,14 @@ import pygame
 import random
 from configuracion import ANCHO, ALTO, BLANCO, FPS
 from jugador import Jugador
-from nivel import dibujar as dibujar_nivel, crear_nivel, plataformas
+from nivel import dibujar as dibujar_nivel, crear_nivel, plataformas, escaleras
 from personaje import donkey_kong, princesa
 from barril import Barril, BarrilRapido, BarrilLento, BarrilRebotador
+
 
 def menu_principal():
     pantalla = pygame.display.set_mode((ANCHO, ALTO))
     pygame.display.set_caption("Donkey Kong - Menú Principal")
-   
     imagen_controles = pygame.image.load("img/controles.png")
     imagen_controles = pygame.transform.scale(imagen_controles, (ANCHO, ALTO))
     ejecutando_menu = True
@@ -23,20 +23,24 @@ def menu_principal():
             if evento.type == pygame.KEYDOWN and evento.key == pygame.K_SPACE:
                 ejecutando_menu = False
 
+
 def posicion_inicial_jugador():
     altura_jugador = 30
+    if not plataformas:
+        raise Exception("Las plataformas no están inicializadas. Llama a crear_nivel(nivel) antes.")
     return plataformas[-1].left + 100, plataformas[-1].top - altura_jugador
 
-def juego(nivel=1):
+
+def juego(num_nivel=1):
     reloj = pygame.time.Clock()
-    crear_nivel(nivel)  # Inicializa plataformas antes de usarlas
+    crear_nivel(num_nivel)
 
     x, y = posicion_inicial_jugador()
     jugador = Jugador(x, y)
     barriles = []
 
     SPAWN_BARRIL = pygame.USEREVENT + 1
-    if nivel == 1:
+    if num_nivel == 1:
         pygame.time.set_timer(SPAWN_BARRIL, 1000)
         barril_tipos = [Barril, BarrilRapido, BarrilLento, BarrilRebotador]
         fondo = BLANCO
@@ -45,8 +49,7 @@ def juego(nivel=1):
         barril_tipos = [BarrilRapido, BarrilRebotador, BarrilRebotador, Barril]
         fondo = (200, 200, 255)
 
-    # Cambia la posición de Donkey Kong y la princesa según el nivel
-    if nivel == 1:
+    if num_nivel == 1:
         donkey_kong["rect"].x, donkey_kong["rect"].y = 150, 10
         princesa["rect"].x, princesa["rect"].y = 700, 10
     else:
@@ -70,7 +73,7 @@ def juego(nivel=1):
                 pygame.quit()
                 exit()
             elif evento.type == SPAWN_BARRIL:
-                for _ in range(2 if nivel == 1 else 3):
+                for _ in range(2 if num_nivel == 1 else 3):
                     tipo = random.choice(barril_tipos)
                     barriles.append(tipo())
 
@@ -108,6 +111,7 @@ def juego(nivel=1):
 
         pygame.display.flip()
     return resultado
+
 
 pygame.init()
 pantalla = pygame.display.set_mode((ANCHO, ALTO))
