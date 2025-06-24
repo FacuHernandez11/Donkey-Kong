@@ -8,7 +8,6 @@ class Barril:
     COLOR = NARANJA
 
     def __init__(self):
-        
         self.plat_idx = random.choice([0, 1])
         plat = plataformas[self.plat_idx]
         x = donkey_kong["rect"].centerx if self.plat_idx == 0 else plat.left + 10
@@ -19,6 +18,9 @@ class Barril:
         self.radio = 10
         self.velocidad_horizontal = 3
         self.puede_rotar = random.choice([True, False])
+
+    def en_plataforma(self, plat):
+        return plat.left <= self.rect.centerx <= plat.right
 
     def actualizar(self):
         if self.fall:
@@ -31,7 +33,6 @@ class Barril:
                 if self.rect.bottom >= next_plat.top:
                     self.rect.bottom = next_plat.top
                     self.plat_idx = next_idx
-                   
                     if self.puede_rotar and random.random() < 0.5:
                         self.dir *= -1
                     else:
@@ -41,9 +42,7 @@ class Barril:
         else:
             self.rect.x += self.velocidad_horizontal * self.dir
             plat = plataformas[self.plat_idx]
-            
             if self.rect.left < plat.left or self.rect.right > plat.right:
-                
                 if self.dir == 1:
                     self.rect.right = plat.right
                 else:
@@ -91,7 +90,7 @@ class BarrilRebotador(Barril):
             self.vel_y += GRAVEDAD
             self.rect.y += self.vel_y
 
-            next_idx = self.plat_idx + 1  
+            next_idx = self.plat_idx + 1
             if next_idx < len(plataformas):
                 next_plat = plataformas[next_idx]
                 if self.rect.bottom >= next_plat.top:
@@ -111,7 +110,6 @@ class BarrilRebotador(Barril):
                 self.rebotando = True
             self.vel_y += GRAVEDAD
             self.rect.y += self.vel_y
-            
             if self.rect.bottom >= plataformas[self.plat_idx].top:
                 self.rect.bottom = plataformas[self.plat_idx].top
                 self.vel_y = 0
