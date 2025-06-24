@@ -19,7 +19,7 @@ class Barril:
         self.velocidad_horizontal = 3
 
     def en_plataforma(self, plat):
-        # Devuelve True si está centrado sobre la plataforma
+        
         return plat.left <= self.rect.centerx <= plat.right
 
     def actualizar(self):
@@ -91,7 +91,7 @@ class BarrilRebotador(Barril):
                     self.rect.bottom = siguiente.top
                     self.plat_idx += 1
                     self.dir = direcciones_plataformas[self.plat_idx]
-                    self.vel_y = self.rebote_fuerza  # rebote vertical
+                    self.vel_y = self.rebote_fuerza  
                     self.fall = False
                     if random.random() < 0.3:
                         self.dir *= -1
@@ -99,5 +99,5 @@ class BarrilRebotador(Barril):
             self.rect.x += self.velocidad_horizontal * self.dir
             plat = plataformas[self.plat_idx]
             if self.rect.left < plat.left or self.rect.right > plat.right:
-                self.dir *= -1  # rebote lateral
+                self.dir *= -1  
                 self.fall = True
