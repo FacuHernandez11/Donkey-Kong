@@ -45,7 +45,7 @@ def crear_nivel(nivel):
             pygame.Rect(600, 270, 40, 100),
             pygame.Rect(300, 370, 40, 100),
             pygame.Rect(700, 470, 40, 110),
-            pygame.Rect(100, 470, 40, 110),  
+            pygame.Rect(100, 470, 40, 110),
         ]
 
 def dibujar(pantalla):

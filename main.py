@@ -29,8 +29,7 @@ def posicion_inicial_jugador():
 
 def juego(nivel=1):
     reloj = pygame.time.Clock()
-    
-    crear_nivel(nivel)
+    crear_nivel(nivel)  # Inicializa plataformas antes de usarlas
 
     x, y = posicion_inicial_jugador()
     jugador = Jugador(x, y)
@@ -46,6 +45,7 @@ def juego(nivel=1):
         barril_tipos = [BarrilRapido, BarrilRebotador, BarrilRebotador, Barril]
         fondo = (200, 200, 255)
 
+    # Cambia la posición de Donkey Kong y la princesa según el nivel
     if nivel == 1:
         donkey_kong["rect"].x, donkey_kong["rect"].y = 150, 10
         princesa["rect"].x, princesa["rect"].y = 700, 10
@@ -61,7 +61,6 @@ def juego(nivel=1):
     resultado = None
     ejecutando = True
     pantalla = pygame.display.set_mode((ANCHO, ALTO))
-
     while ejecutando:
         reloj.tick(FPS)
         pantalla.fill(fondo)
@@ -108,9 +107,7 @@ def juego(nivel=1):
             resultado = "ganaste"
 
         pygame.display.flip()
-
     return resultado
-
 
 pygame.init()
 pantalla = pygame.display.set_mode((ANCHO, ALTO))
