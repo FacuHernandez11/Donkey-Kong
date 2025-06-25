@@ -52,7 +52,7 @@ def crear_nivel(nivel):
         ])
 
 def dibujar(pantalla):
-    for plataforma in plataformas:
-        pygame.draw.rect(pantalla, MARRON, plataforma)
     for escalera in escaleras:
         pygame.draw.rect(pantalla, CIAN, escalera)
+    for plataforma in plataformas:
+        pygame.draw.rect(pantalla, MARRON, plataforma)

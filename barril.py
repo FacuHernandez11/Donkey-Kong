@@ -6,14 +6,21 @@ from nivel import plataformas, direcciones_plataformas, escaleras
 class Barril:
     COLOR = NARANJA
 
-    def __init__(self):
+    def __init__(self, lado=None):
         plat = plataformas[0]
-        x = plat.left + 20
+        if lado == 'izq':
+            x = plat.left + 20
+            self.dir = 1
+        elif lado == 'der':
+            x = plat.right - 20
+            self.dir = -1
+        else:
+            x = plat.left + 20
+            self.dir = 1
         y = plat.top
-        self.rect = pygame.Rect(x, y - 20, 20, 20)
+        self.rect = __import__('pygame').Rect(x, y - 20, 20, 20)
         self.plat_idx = 0
         self.rect.bottom = plataformas[self.plat_idx].top
-        self.dir = direcciones_plataformas[self.plat_idx]
         self.vel_y = 0
         self.fall = False
         self.radio = 10
@@ -76,27 +83,24 @@ class Barril:
         return distancia < (self.radio + rect.width // 2) ** 2
 
     def esta_fuera_de_pantalla(self):
-        return self.rect.top > 600
+        return self.rect.top > 600 or self.morir
 
 class BarrilRapido(Barril):
     COLOR = (255, 0, 0)
-
-    def __init__(self):
-        super().__init__()
+    def __init__(self, lado=None):
+        super().__init__(lado)
         self.velocidad_horizontal = 6
 
 class BarrilLento(Barril):
     COLOR = (0, 255, 0)
-
-    def __init__(self):
-        super().__init__()
+    def __init__(self, lado=None):
+        super().__init__(lado)
         self.velocidad_horizontal = 2
 
 class BarrilRebotador(Barril):
     COLOR = (0, 0, 255)
-
-    def __init__(self):
-        super().__init__()
+    def __init__(self, lado=None):
+        super().__init__(lado)
         self.velocidad_horizontal = 4
         self.rebote_fuerza = -10
         self.rebotando = False

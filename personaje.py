@@ -1,5 +1,6 @@
 import pygame
 from configuracion import ROJO, ROSA
 
-donkey_kong = {"rect": pygame.Rect(150, 10, 50, 50), "color": ROJO}  
-princesa = {"rect": pygame.Rect(700, 10, 30, 40), "color": ROSA}     
+donkey_kong = {"rect": pygame.Rect(150, 10, 50, 50), "color": ROJO}
+donkey_kong2 = {"rect": pygame.Rect(600, 10, 50, 50), "color": ROJO}  # Segundo mono
+princesa = {"rect": pygame.Rect(700, 10, 30, 40), "color": ROSA}
