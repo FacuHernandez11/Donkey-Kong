@@ -41,11 +41,11 @@ def juego(num_nivel=1):
 
     SPAWN_BARRIL = pygame.USEREVENT + 1
     if num_nivel == 1:
-        pygame.time.set_timer(SPAWN_BARRIL, 1000)
+        pygame.time.set_timer(SPAWN_BARRIL, 1200)
         barril_tipos = [Barril, BarrilRapido, BarrilLento, BarrilRebotador]
         fondo = BLANCO
     else:
-        pygame.time.set_timer(SPAWN_BARRIL, 600)
+        pygame.time.set_timer(SPAWN_BARRIL, 1200)
         barril_tipos = [BarrilRapido, BarrilRebotador, BarrilRebotador, Barril]
         fondo = (200, 200, 255)
 

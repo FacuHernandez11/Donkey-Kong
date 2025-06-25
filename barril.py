@@ -2,37 +2,26 @@ import pygame
 import random
 from configuracion import NARANJA, GRAVEDAD
 from nivel import plataformas, direcciones_plataformas, escaleras
-from personaje import donkey_kong
 
 class Barril:
     COLOR = NARANJA
 
     def __init__(self):
-        # Posición inicial: desde Donkey Kong
-        x = donkey_kong["rect"].centerx
-        y = donkey_kong["rect"].bottom
-        self.rect = pygame.Rect(x, y, 20, 20)
-
-        # Forzar que comience en la plataforma justo debajo de Donkey Kong
-        self.plat_idx = None
-        for i, plat in enumerate(plataformas):
-            if plat.top > y and plat.left <= x <= plat.right:
-                self.plat_idx = i
-                break
-
-        if self.plat_idx is None:
-            raise Exception("No se encontró plataforma válida debajo de Donkey Kong para el barril.")
-
+        plat = plataformas[0]
+        x = plat.left + 20
+        y = plat.top
+        self.rect = pygame.Rect(x, y - 20, 20, 20)
+        self.plat_idx = 0
         self.rect.bottom = plataformas[self.plat_idx].top
         self.dir = direcciones_plataformas[self.plat_idx]
         self.vel_y = 0
         self.fall = False
         self.radio = 10
         self.velocidad_horizontal = 3
-        self.puede_rotar = random.choice([True, False])
+        self.morir = False
 
-    def en_plataforma(self, plat):
-        return plat.left <= self.rect.centerx <= plat.right
+    def en_plataforma(self, plat, margen=2):
+        return plat.left - margen <= self.rect.centerx <= plat.right + margen
 
     def actualizar(self):
         if self.fall:
@@ -42,36 +31,40 @@ class Barril:
             next_idx = self.plat_idx + 1
             if next_idx < len(plataformas):
                 next_plat = plataformas[next_idx]
-                if self.rect.bottom >= next_plat.top:
+                if self.rect.bottom >= next_plat.top and self.en_plataforma(next_plat):
                     self.rect.bottom = next_plat.top
                     self.plat_idx = next_idx
-                    if self.puede_rotar and random.random() < 0.5:
-                        self.dir *= -1
-                    else:
-                        self.dir = direcciones_plataformas[self.plat_idx]
+                    self.dir = direcciones_plataformas[self.plat_idx]
                     self.fall = False
                     self.vel_y = 0
+            else:
+                if self.rect.top > 600:
+                    self.morir = True
         else:
-            # Movimiento horizontal
             self.rect.x += self.velocidad_horizontal * self.dir
             plat = plataformas[self.plat_idx]
 
-            # Bajar por escalera si es barril naranja
-            for escalera in escaleras:
-                if escalera.left <= self.rect.centerx <= escalera.right:
-                    if self.rect.bottom == escalera.top:
-                        if random.random() < 0.02:  # 2% chance
+            if self.dir == 1 and self.rect.right >= plat.right:
+                self.rect.right = plat.right
+                self.fall = True
+                self.vel_y = 0
+                return
+            elif self.dir == -1 and self.rect.left <= plat.left:
+                self.rect.left = plat.left
+                self.fall = True
+                self.vel_y = 0
+                return
+
+            if self.COLOR == NARANJA:
+                for escalera in escaleras:
+                    margen_x = 10
+                    margen_y = 5
+                    if (escalera.left - margen_x <= self.rect.centerx <= escalera.right + margen_x and
+                        abs(self.rect.bottom - escalera.top) <= margen_y):
+                        if random.random() < 0.02:
                             self.fall = True
                             self.vel_y = 2
                             return
-
-            if self.rect.left < plat.left or self.rect.right > plat.right:
-                if self.dir == 1:
-                    self.rect.right = plat.right
-                else:
-                    self.rect.left = plat.left
-                self.fall = True
-                self.vel_y = 0
 
     def dibujar(self, pantalla):
         pygame.draw.circle(pantalla, self.COLOR, self.rect.center, self.radio)
@@ -85,7 +78,6 @@ class Barril:
     def esta_fuera_de_pantalla(self):
         return self.rect.top > 600
 
-
 class BarrilRapido(Barril):
     COLOR = (255, 0, 0)
 
@@ -93,14 +85,12 @@ class BarrilRapido(Barril):
         super().__init__()
         self.velocidad_horizontal = 6
 
-
 class BarrilLento(Barril):
     COLOR = (0, 255, 0)
 
     def __init__(self):
         super().__init__()
         self.velocidad_horizontal = 2
-
 
 class BarrilRebotador(Barril):
     COLOR = (0, 0, 255)
@@ -110,6 +100,7 @@ class BarrilRebotador(Barril):
         self.velocidad_horizontal = 4
         self.rebote_fuerza = -10
         self.rebotando = False
+        self.morir = False
 
     def actualizar(self):
         if self.fall:
@@ -119,32 +110,40 @@ class BarrilRebotador(Barril):
             next_idx = self.plat_idx + 1
             if next_idx < len(plataformas):
                 next_plat = plataformas[next_idx]
-                if self.rect.bottom >= next_plat.top:
+                if self.rect.bottom >= next_plat.top and self.en_plataforma(next_plat):
                     self.rect.bottom = next_plat.top
                     self.plat_idx = next_idx
-                    if self.puede_rotar and random.random() < 0.5:
-                        self.dir *= -1
-                    else:
-                        self.dir = direcciones_plataformas[self.plat_idx]
+                    self.dir = direcciones_plataformas[self.plat_idx]
                     self.fall = False
                     self.vel_y = 0
+                    self.rebotando = False
+            else:
+                if self.rect.top > 600:
+                    self.morir = True
         else:
             self.rect.x += self.velocidad_horizontal * self.dir
+
             if not self.rebotando and self.rect.bottom == plataformas[self.plat_idx].top:
                 self.vel_y = self.rebote_fuerza
                 self.rebotando = True
+
             self.vel_y += GRAVEDAD
             self.rect.y += self.vel_y
+
             if self.rect.bottom >= plataformas[self.plat_idx].top:
                 self.rect.bottom = plataformas[self.plat_idx].top
                 self.vel_y = 0
                 self.rebotando = False
 
             plat = plataformas[self.plat_idx]
-            if self.rect.left < plat.left or self.rect.right > plat.right:
-                if self.dir == 1:
-                    self.rect.right = plat.right
-                else:
-                    self.rect.left = plat.left
+
+            if self.dir == 1 and self.rect.right >= plat.right:
+                self.rect.right = plat.right
                 self.fall = True
                 self.vel_y = 0
+                return
+            elif self.dir == -1 and self.rect.left <= plat.left:
+                self.rect.left = plat.left
+                self.fall = True
+                self.vel_y = 0
+                return
