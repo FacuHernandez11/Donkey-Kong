@@ -9,6 +9,12 @@ class Jugador:
         self.saltando = False
         self.en_escalera = False
         self.plat_idx = self.plataforma_actual()
+        self.imagen_der = pygame.image.load("img/mario.png").convert_alpha()
+        self.imagen_der = pygame.transform.scale(self.imagen_der, (self.rect.width, self.rect.height))
+        self.imagen_izq = pygame.image.load("img/mario2.png").convert_alpha()
+        self.imagen_izq = pygame.transform.scale(self.imagen_izq, (self.rect.width, self.rect.height))
+        self.imagen = self.imagen_der
+        self.facing_left = False
 
     def plataforma_actual(self):
         for i, plat in enumerate(plataformas):
@@ -43,8 +49,10 @@ class Jugador:
 
         if teclas[pygame.K_LEFT]:
             self.rect.x -= 3
+            self.facing_left = True
         if teclas[pygame.K_RIGHT]:
             self.rect.x += 3
+            self.facing_left = False
 
         self.rect.x = max(0, min(ANCHO - self.rect.width, self.rect.x))
 
@@ -73,11 +81,16 @@ class Jugador:
                 self.vel_y = 0
                 self.saltando = False
 
+        # Cambia la imagen según la dirección
+        if self.facing_left:
+            self.imagen = self.imagen_izq
+        else:
+            self.imagen = self.imagen_der
+
     def saltar(self):
         if not self.saltando:
             self.vel_y = -12
             self.saltando = True
 
     def dibujar(self, pantalla):
-        color = (0, 100, 255)
-        pygame.draw.rect(pantalla, color, self.rect)
+        pantalla.blit(self.imagen, self.rect)

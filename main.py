@@ -91,6 +91,8 @@ def juego(num_nivel=1):
     resultado = None
     ejecutando = True
     pantalla = pygame.display.set_mode((ANCHO, ALTO))
+    fondo_img = pygame.image.load("img/fondo.jpg").convert()
+    fondo_img = pygame.transform.scale(fondo_img, (ANCHO, ALTO))
 
     if num_nivel == 2 or num_nivel == 3:
         plat = plataformas[0]
@@ -128,9 +130,18 @@ def juego(num_nivel=1):
         tele2_y = plat_tele2.top - 20
         tele_rects.append(pygame.Rect(tele2_x, tele2_y, 30, 30))
 
+   
+    portal_img = pygame.image.load("img/portal.png").convert_alpha()
+    portal_imgs_escalados = [pygame.transform.scale(portal_img, (rect.width, rect.height)) for rect in tele_rects]
+
+    
+    donkey_img = pygame.image.load("img/donkey.png").convert_alpha()
+    donkey_img = pygame.transform.scale(donkey_img, (donkey_kong["rect"].width, donkey_kong["rect"].height))
+    donkey_img2 = pygame.transform.scale(donkey_img, (donkey_kong2["rect"].width, donkey_kong2["rect"].height))
+
     while ejecutando:
         reloj.tick(FPS)
-        pantalla.fill(fondo)
+        pantalla.blit(fondo_img, (0, 0))  
 
         if num_nivel == 3:
             tiempo_actual = pygame.time.get_ticks()
@@ -195,9 +206,9 @@ def juego(num_nivel=1):
 
         if mostrar_jugador:
             jugador.dibujar(pantalla)
-        pygame.draw.rect(pantalla, donkey_kong["color"], donkey_kong["rect"])
+        pantalla.blit(donkey_img, donkey_kong["rect"].topleft)
         if num_nivel == 2:
-            pygame.draw.rect(pantalla, donkey_kong2["color"], donkey_kong2["rect"])
+            pantalla.blit(donkey_img2, donkey_kong2["rect"].topleft)
         pygame.draw.rect(pantalla, princesa["color"], princesa["rect"])
 
         if num_nivel == 2 and not llave_tomada:
@@ -259,12 +270,13 @@ def juego(num_nivel=1):
                 jugador.rect.x = x
                 jugador.rect.y = y
 
-        for tele_rect in tele_rects:
-            pygame.draw.rect(pantalla, (255, 0, 255), tele_rect)
+        for tele_rect, portal_img in zip(tele_rects, portal_imgs_escalados):
+            pantalla.blit(portal_img, tele_rect.topleft)
 
         for i in range(vidas):
-            vida_rect = pygame.Rect(20 + i*35, 15, 20, 30)
-            pygame.draw.rect(pantalla, (0, 100, 255), vida_rect)
+            corazon_img = pygame.image.load("img/mario.png").convert_alpha()  
+            corazon_img = pygame.transform.scale(corazon_img, (30, 30))
+            pantalla.blit(corazon_img, (20 + i*35, 15))
 
         if num_nivel == 3 and jugador.rect.colliderect(princesa["rect"]):
             pantalla.blit(imagen_nivel_superado, (0, 0))
@@ -292,6 +304,15 @@ def juego(num_nivel=1):
     return resultado
 
 
+def mostrar_bait():
+    pantalla = pygame.display.set_mode((ANCHO, ALTO))
+    imagen_bait = pygame.image.load("img/pantalla3.png")
+    imagen_bait = pygame.transform.scale(imagen_bait, (ANCHO, ALTO))
+    pantalla.blit(imagen_bait, (0, 0))
+    pygame.display.flip()
+    pygame.time.wait(2500)  
+
+
 pygame.init()
 pantalla = pygame.display.set_mode((ANCHO, ALTO))
 nivel_actual = 1
@@ -300,6 +321,7 @@ while True:
     menu_principal()
     resultado = juego(nivel_actual)
     if resultado == "ganaste" and nivel_actual == 1:
+        mostrar_bait()  
         nivel_actual = 2
     elif resultado == "ganaste" and nivel_actual == 2:
         nivel_actual = 3
