@@ -5,6 +5,9 @@ from nivel import plataformas, escaleras
 
 class Barril:
     COLOR = NARANJA
+    # Carga la imagen solo una vez
+    IMG = pygame.image.load("img/banana.png")
+    IMG = pygame.transform.scale(IMG, (20, 20))
 
     def __init__(self, x, y, dir=1):
         self.rect = pygame.Rect(x, y, 20, 20)
@@ -65,7 +68,8 @@ class Barril:
                         return
 
     def dibujar(self, pantalla):
-        pygame.draw.circle(pantalla, self.COLOR, self.rect.center, self.radio)
+        
+        pantalla.blit(self.IMG, self.rect)
 
     def colisiona_con(self, rect):
         dx = self.rect.centerx - rect.centerx

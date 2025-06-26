@@ -49,15 +49,15 @@ def juego(num_nivel=1):
 
     SPAWN_BARRIL = pygame.USEREVENT + 1
     if num_nivel == 1:
-        pygame.time.set_timer(SPAWN_BARRIL, 1500000)
+        pygame.time.set_timer(SPAWN_BARRIL, 250000)
         barril_tipos = [BarrilNivel1, BarrilRapido]
         fondo = BLANCO
     elif num_nivel == 2:
-        pygame.time.set_timer(SPAWN_BARRIL, 1500000)
+        pygame.time.set_timer(SPAWN_BARRIL, 250000)
         barril_tipos = [BarrilRapido, BarrilRebotador, BarrilNivel2, BarrilNivel2]
         fondo = (200, 200, 255)
     elif num_nivel == 3:
-        pygame.time.set_timer(SPAWN_BARRIL, 1500000) 
+        pygame.time.set_timer(SPAWN_BARRIL, 250000) 
         barril_tipos = [BarrilRapido, BarrilRebotador, BarrilNivel2, BarrilNivel1]
         fondo = (220, 220, 220)
 
@@ -83,7 +83,7 @@ def juego(num_nivel=1):
         donkey_kong2["rect"].y = plat_der.top - donkey_kong2["rect"].height
         princesa["rect"].x, princesa["rect"].y = 700, 270
 
-    imagen_nivel_superado = pygame.image.load("img/pantalla1.gif")
+    imagen_nivel_superado = pygame.image.load("img/pantalla1.png")
     imagen_nivel_superado = pygame.transform.scale(imagen_nivel_superado, (ANCHO, ALTO))
     imagen_perdiste = pygame.image.load("img/pantalla2.png")
     imagen_perdiste = pygame.transform.scale(imagen_perdiste, (ANCHO, ALTO))
@@ -139,6 +139,15 @@ def juego(num_nivel=1):
     donkey_img = pygame.transform.scale(donkey_img, (donkey_kong["rect"].width, donkey_kong["rect"].height))
     donkey_img2 = pygame.transform.scale(donkey_img, (donkey_kong2["rect"].width, donkey_kong2["rect"].height))
 
+    princesa_img = pygame.image.load("img/princesa.png").convert_alpha()
+    princesa_img = pygame.transform.scale(princesa_img, (princesa["rect"].width, princesa["rect"].height))
+
+    puerta_cerrada_img = pygame.image.load("img/puerta.png").convert_alpha()
+    puerta_cerrada_img = pygame.transform.scale(puerta_cerrada_img, (princesa["rect"].width, princesa["rect"].height))
+    puerta_abierta_img = pygame.image.load("img/puerta2.png").convert_alpha()
+    puerta_abierta_img = pygame.transform.scale(puerta_abierta_img, (princesa["rect"].width, princesa["rect"].height))
+
+
     while ejecutando:
         reloj.tick(FPS)
         pantalla.blit(fondo_img, (0, 0))  
@@ -150,7 +159,9 @@ def juego(num_nivel=1):
             texto_tiempo = fuente.render(f"Tiempo: {tiempo_restante}", True, (255, 0, 0))
             pantalla.blit(texto_tiempo, (ANCHO // 2 - 60, 10))
             if tiempo_restante <= 0:
-                pantalla.blit(imagen_perdiste, (0, 0))
+                imagen_tiempo = pygame.image.load("img/pantalla4.png")
+                imagen_tiempo = pygame.transform.scale(imagen_tiempo, (ANCHO, ALTO))
+                pantalla.blit(imagen_tiempo, (0, 0))
                 pygame.display.flip()
                 pygame.time.wait(3000)
                 ejecutando = False
@@ -166,7 +177,10 @@ def juego(num_nivel=1):
                     for _ in range(3):  
                         tipo = random.choice(barril_tipos)
                         if tipo == BarrilNivel1:
-                            barriles.append(tipo())
+                            plat = plataformas[0]
+                            x = plat.left + 10
+                            y = plat.top - 20
+                            barriles.append(tipo(x, y, dir=1))
                         else:
                             plat = plataformas[0]
                             x = plat.left + 10
@@ -209,22 +223,32 @@ def juego(num_nivel=1):
         pantalla.blit(donkey_img, donkey_kong["rect"].topleft)
         if num_nivel == 2:
             pantalla.blit(donkey_img2, donkey_kong2["rect"].topleft)
-        pygame.draw.rect(pantalla, princesa["color"], princesa["rect"])
+       
 
         if num_nivel == 2 and not llave_tomada:
             llave_rect.y += llave_direccion * 1  
             if llave_rect.y <= llave_min_y or llave_rect.y >= llave_max_y:
                 llave_direccion *= -1
+            
+            centro = (llave_rect.x + llave_rect.width // 2, llave_rect.y + llave_rect.height // 2)
+            radio = min(llave_rect.width, llave_rect.height) // 2
+            pygame.draw.circle(pantalla, AMARILLO, centro, radio)
 
         if num_nivel == 2 and not llave_tomada:
-            pygame.draw.rect(pantalla, AMARILLO, llave_rect)
+            pygame.draw.circle(pantalla, AMARILLO, centro, radio)
+        elif num_nivel == 2 and llave_tomada:
+            centro = (llave_rect.x + llave_rect.width // 2, llave_rect.y + llave_rect.height // 2)
+            radio = min(llave_rect.width, llave_rect.height) // 2
+            
 
         if num_nivel == 2:
-            color_puerta = (0, 255, 0) if puerta_abierta else (128, 0, 128)
             puerta_rect = pygame.Rect(princesa["rect"].x, princesa["rect"].y, princesa["rect"].width, princesa["rect"].height)
-            pygame.draw.rect(pantalla, color_puerta, puerta_rect)
+            if puerta_abierta:
+                pantalla.blit(puerta_abierta_img, puerta_rect.topleft)
+            else:
+                pantalla.blit(puerta_cerrada_img, puerta_rect.topleft)
         else:
-            pygame.draw.rect(pantalla, princesa["color"], princesa["rect"])
+            pantalla.blit(princesa_img, princesa["rect"].topleft)
 
         if (num_nivel == 2 or num_nivel == 3) and not llave_tomada and jugador.rect.colliderect(llave_rect):
             llave_tomada = True
@@ -310,7 +334,23 @@ def mostrar_bait():
     imagen_bait = pygame.transform.scale(imagen_bait, (ANCHO, ALTO))
     pantalla.blit(imagen_bait, (0, 0))
     pygame.display.flip()
-    pygame.time.wait(2500)  
+    pygame.time.wait(11000)  
+
+def mostrar_final():
+    pantalla = pygame.display.set_mode((ANCHO, ALTO))
+    imagen_final = pygame.image.load("img/pantallafinal.png")
+    imagen_final = pygame.transform.scale(imagen_final, (ANCHO, ALTO))
+    pantalla.blit(imagen_final, (0, 0))
+    pygame.display.flip()
+    pygame.time.wait(4000)  # Muestra la pantalla final por 4 segundos
+
+def mostrar_advertencia_portal():
+    pantalla = pygame.display.set_mode((ANCHO, ALTO))
+    advertencia_img = pygame.image.load("img/portales.png")  # Usa el nombre real del archivo
+    advertencia_img = pygame.transform.scale(advertencia_img, (ANCHO, ALTO))
+    pantalla.blit(advertencia_img, (0, 0))
+    pygame.display.flip()
+    pygame.time.wait(2500)  # Muestra la advertencia por 2.5 segundos
 
 
 pygame.init()
@@ -318,6 +358,8 @@ pantalla = pygame.display.set_mode((ANCHO, ALTO))
 nivel_actual = 1
 
 while True:
+    if nivel_actual == 1:
+        mostrar_advertencia_portal()
     menu_principal()
     resultado = juego(nivel_actual)
     if resultado == "ganaste" and nivel_actual == 1:
@@ -326,6 +368,7 @@ while True:
     elif resultado == "ganaste" and nivel_actual == 2:
         nivel_actual = 3
     elif resultado == "ganaste" and nivel_actual == 3:
+        mostrar_final()  # Muestra la pantalla final al terminar todos los niveles
         print("¡Completaste todos los niveles!")
         break
     else:

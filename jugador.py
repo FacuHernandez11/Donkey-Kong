@@ -15,6 +15,8 @@ class Jugador:
         self.imagen_izq = pygame.transform.scale(self.imagen_izq, (self.rect.width, self.rect.height))
         self.imagen = self.imagen_der
         self.facing_left = False
+        # Cargar el sonido de salto
+        self.sonido_salto = pygame.mixer.Sound("audio/salto.mp3")
 
     def plataforma_actual(self):
         for i, plat in enumerate(plataformas):
@@ -91,6 +93,8 @@ class Jugador:
         if not self.saltando:
             self.vel_y = -12
             self.saltando = True
+            # Reproducir el sonido de salto
+            self.sonido_salto.play()
 
     def dibujar(self, pantalla):
         pantalla.blit(self.imagen, self.rect)

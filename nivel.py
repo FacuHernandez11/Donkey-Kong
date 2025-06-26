@@ -4,6 +4,9 @@ plataformas = []
 direcciones_plataformas = []
 escaleras = []
 
+escalera_img = None
+plataforma_img = None
+
 def crear_nivel(nivel):
     global plataformas, direcciones_plataformas, escaleras
     plataformas.clear()
@@ -67,7 +70,14 @@ def crear_nivel(nivel):
         ])
 
 def dibujar(pantalla):
+    global escalera_img, plataforma_img
+    if escalera_img is None:
+        escalera_img = pygame.image.load("img/escalera.png").convert_alpha()
+    if plataforma_img is None:
+        plataforma_img = pygame.image.load("img/plataforma.jpg").convert_alpha()
     for escalera in escaleras:
-        pygame.draw.rect(pantalla, CIAN, escalera)
+        img_escalada = pygame.transform.scale(escalera_img, (escalera.width, escalera.height))
+        pantalla.blit(img_escalada, escalera.topleft)
     for plataforma in plataformas:
-        pygame.draw.rect(pantalla, MARRON, plataforma)
+        img_plat = pygame.transform.scale(plataforma_img, (plataforma.width, plataforma.height))
+        pantalla.blit(img_plat, plataforma.topleft)
