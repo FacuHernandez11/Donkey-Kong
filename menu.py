@@ -27,7 +27,8 @@ def iniciar_donkey_kong():
     subprocess.run([sys.executable, "main.py"])
 
 def iniciar_diddy_kong_racing():
-    print("Diddy Kong Racing aún no implementado")
+    pygame.quit()
+    subprocess.run([sys.executable, "carrera/main.py"])
 
 def menu():
     while True:
@@ -43,11 +44,8 @@ def menu():
                     iniciar_diddy_kong_racing()
 
         pantalla.blit(menu_img, (0, 0))
-        # Si quieres ver los rectángulos para depuración, descomenta:
-        # pygame.draw.rect(pantalla, (255,0,0), logo_donkey_rect, 2)
-        # pygame.draw.rect(pantalla, (0,255,0), logo_diddy_rect, 2)
+        
         pygame.display.flip()
 
 if __name__ == "__main__":
     menu()
-

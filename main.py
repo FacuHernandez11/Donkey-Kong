@@ -330,11 +330,14 @@ def juego(num_nivel=1):
 
 def mostrar_bait():
     pantalla = pygame.display.set_mode((ANCHO, ALTO))
+    pygame.mixer.music.load("audio/bait.mp3")
+    pygame.mixer.music.play(loops=-1) 
     imagen_bait = pygame.image.load("img/pantalla3.png")
     imagen_bait = pygame.transform.scale(imagen_bait, (ANCHO, ALTO))
     pantalla.blit(imagen_bait, (0, 0))
     pygame.display.flip()
-    pygame.time.wait(11000)  
+    pygame.time.wait(11000)
+    pygame.mixer.music.stop()  
 
 def mostrar_final():
     pantalla = pygame.display.set_mode((ANCHO, ALTO))
@@ -342,15 +345,15 @@ def mostrar_final():
     imagen_final = pygame.transform.scale(imagen_final, (ANCHO, ALTO))
     pantalla.blit(imagen_final, (0, 0))
     pygame.display.flip()
-    pygame.time.wait(4000)  # Muestra la pantalla final por 4 segundos
+    pygame.time.wait(4000)  
 
 def mostrar_advertencia_portal():
     pantalla = pygame.display.set_mode((ANCHO, ALTO))
-    advertencia_img = pygame.image.load("img/portales.png")  # Usa el nombre real del archivo
+    advertencia_img = pygame.image.load("img/portales.png")  
     advertencia_img = pygame.transform.scale(advertencia_img, (ANCHO, ALTO))
     pantalla.blit(advertencia_img, (0, 0))
     pygame.display.flip()
-    pygame.time.wait(2500)  # Muestra la advertencia por 2.5 segundos
+    pygame.time.wait(2500)  
 
 
 pygame.init()
