@@ -1,28 +1,42 @@
 import pygame
-from configuracion import ANCHO, GRAVEDAD, AZUL
+from configuracion import ANCHO, ALTO, GRAVEDAD
 from nivel import plataformas, escaleras
 
 class Jugador:
     def __init__(self, x, y):
-        self.rect = pygame.Rect(x, y, 25, 35)
+        self.rect = pygame.Rect(x, y, 20, 30)
         self.vel_y = 0
         self.saltando = False
         self.en_escalera = False
         self.plat_idx = self.plataforma_actual()
-        self.subiendo = False
-        self.bajando = False
+        self.imagen_der = pygame.image.load("img/mario.png").convert_alpha()
+        self.imagen_der = pygame.transform.scale(self.imagen_der, (self.rect.width, self.rect.height))
+        self.imagen_izq = pygame.image.load("img/mario2.png").convert_alpha()
+        self.imagen_izq = pygame.transform.scale(self.imagen_izq, (self.rect.width, self.rect.height))
+        self.imagen = self.imagen_der
+        self.facing_left = False
+        # Cargar el sonido de salto
+        self.sonido_salto = pygame.mixer.Sound("audio/salto.mp3")
 
     def plataforma_actual(self):
         for i, plat in enumerate(plataformas):
-            if (self.rect.bottom == plat.top and
+            if (
+                self.rect.bottom <= plat.top + 5 and
+                self.rect.bottom >= plat.top - 15 and
                 self.rect.right > plat.left and
-                self.rect.left < plat.right):
+                self.rect.left < plat.right
+            ):
                 return i
         return -1
 
     def esta_alineado_con_escalera(self, escalera):
-        margen = 10
-        return escalera.left - margen <= self.rect.centerx <= escalera.right + margen
+        margen = 5
+        return (
+            self.rect.right > escalera.left + margen and
+            self.rect.left < escalera.right - margen and
+            self.rect.bottom > escalera.top and
+            self.rect.top < escalera.bottom
+        )
 
     def actualizar(self, teclas):
         self.plat_idx = self.plataforma_actual()
@@ -30,33 +44,25 @@ class Jugador:
 
         escalera_candidata = None
         for escalera in escaleras:
-            if self.rect.colliderect(escalera):
-                if self.esta_alineado_con_escalera(escalera):
-                    self.en_escalera = True
-                    escalera_candidata = escalera
-                    break
+            if self.rect.colliderect(escalera) and self.esta_alineado_con_escalera(escalera):
+                self.en_escalera = True
+                escalera_candidata = escalera
+                break
 
         if teclas[pygame.K_LEFT]:
             self.rect.x -= 3
+            self.facing_left = True
         if teclas[pygame.K_RIGHT]:
             self.rect.x += 3
+            self.facing_left = False
 
         self.rect.x = max(0, min(ANCHO - self.rect.width, self.rect.x))
 
         if self.en_escalera and not self.saltando:
             if teclas[pygame.K_UP]:
-                self.subir_escalera(escalera_candidata)
+                self.rect.y -= 3
             elif teclas[pygame.K_DOWN]:
-                self.bajar_escalera(escalera_candidata)
-            else:
-                self.subiendo = False
-                self.bajando = False
-                if self.plat_idx >= 0:
-                    plat = plataformas[self.plat_idx]
-                    self.rect.bottom = plat.top
-                else:
-                    if escalera_candidata:
-                        self.rect.centerx = escalera_candidata.centerx
+                self.rect.y += 3
             self.vel_y = 0
         else:
             self.vel_y += GRAVEDAD
@@ -64,66 +70,31 @@ class Jugador:
 
             apoyado = False
             for plat in plataformas:
-                rect_prediccion = self.rect.copy()
-                rect_prediccion.y += self.vel_y
-
-                if rect_prediccion.colliderect(plat) and self.vel_y >= 0:
-                    if self.rect.bottom <= plat.top + 10:
+                if self.vel_y >= 0 and self.rect.bottom <= plat.top + 15 and self.rect.right > plat.left and self.rect.left < plat.right:
+                    if self.rect.bottom + self.vel_y >= plat.top:
                         self.rect.bottom = plat.top
                         self.vel_y = 0
                         self.saltando = False
                         apoyado = True
                         break
 
-            if not apoyado:
-                for escalera in escaleras:
-                    margen = 10
-                    if escalera.left - margen <= self.rect.centerx <= escalera.right + margen:
-                        if abs(self.rect.bottom - escalera.top) < 20:
-                            self.rect.bottom = escalera.top
-                            self.vel_y = 0
-                            self.saltando = False
-                            apoyado = True
-                            break
+            if self.rect.top > ALTO:
+                self.rect.bottom = plataformas[-1].top
+                self.vel_y = 0
+                self.saltando = False
 
-    def subir_escalera(self, escalera):
-        if escalera is None:
-            return
-        siguiente_idx = self.plat_idx - 1
-        if siguiente_idx < 0:
-            return
-        plat_superior = plataformas[siguiente_idx]
-        self.rect.bottom = plat_superior.top
-        self.rect.centerx = escalera.centerx
-        self.subiendo = True
-        self.bajando = False
-        self.vel_y = 0
-        self.plat_idx = siguiente_idx
-
-    def bajar_escalera(self, escalera):
-        if escalera is None:
-            return
-        siguiente_idx = self.plat_idx + 1
-        if siguiente_idx >= len(plataformas):
-            return
-        plat_inferior = plataformas[siguiente_idx]
-        self.rect.bottom = plat_inferior.top
-        self.rect.centerx = escalera.centerx
-        self.bajando = True
-        self.subiendo = False
-        self.vel_y = 0
-        self.plat_idx = siguiente_idx
+        # Cambia la imagen según la dirección
+        if self.facing_left:
+            self.imagen = self.imagen_izq
+        else:
+            self.imagen = self.imagen_der
 
     def saltar(self):
-        puede_saltar = (
-            not self.saltando and
-            (not self.en_escalera or self.vel_y == 0)
-        )
-        if puede_saltar:
+        if not self.saltando:
             self.vel_y = -12
             self.saltando = True
+            # Reproducir el sonido de salto
+            self.sonido_salto.play()
 
     def dibujar(self, pantalla):
-        colores = [(0, 0, 255), (0, 100, 255)]
-        frame = (pygame.time.get_ticks() // 300) % 2
-        pygame.draw.rect(pantalla, colores[frame], self.rect)
+        pantalla.blit(self.imagen, self.rect)
