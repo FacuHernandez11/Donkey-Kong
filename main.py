@@ -39,19 +39,41 @@ def juego(num_nivel=1):
     jugador = Jugador(x, y)
     barriles = []
 
+    vidas = 2
+    parpadeo = False
+    parpadeo_timer = 0
+    parpadeo_duracion = 1500  
+    parpadeo_intervalo = 150  
+    ultimo_parpadeo = 0
+
+    tiempo_limite = 30  
+    tiempo_inicio = pygame.time.get_ticks() if num_nivel == 3 else None
+
     SPAWN_BARRIL = pygame.USEREVENT + 1
     if num_nivel == 1:
-        pygame.time.set_timer(SPAWN_BARRIL, 1500)
-        barril_tipos = [BarrilNivel1]  
+        pygame.time.set_timer(SPAWN_BARRIL, 1500000)
+        barril_tipos = [BarrilNivel1, BarrilRapido]
         fondo = BLANCO
-    else:
-        pygame.time.set_timer(SPAWN_BARRIL, 1500)
+    elif num_nivel == 2:
+        pygame.time.set_timer(SPAWN_BARRIL, 1500000)
         barril_tipos = [BarrilRapido, BarrilRebotador, BarrilNivel2, BarrilNivel2]
         fondo = (200, 200, 255)
+    elif num_nivel == 3:
+        pygame.time.set_timer(SPAWN_BARRIL, 1500000) 
+        barril_tipos = [BarrilRapido, BarrilRebotador, BarrilNivel2, BarrilNivel1]
+        fondo = (220, 220, 220)
 
-    if num_nivel == 1: 
+    if num_nivel == 3:
+        plat_peach = plataformas[0]
+        princesa["rect"].x = plat_peach.left + plat_peach.width // 2 - princesa["rect"].width // 2
+        princesa["rect"].y = plat_peach.top - princesa["rect"].height
+
+        plat_mono = plataformas[1]  
+        donkey_kong["rect"].x = plat_mono.left
+        donkey_kong["rect"].y = plat_mono.top - donkey_kong["rect"].height
+    elif num_nivel == 1:
         plat = plataformas[0]
-        donkey_kong["rect"].x = plat.left - 30  
+        donkey_kong["rect"].x = plat.left - 30
         donkey_kong["rect"].y = plat.top - donkey_kong["rect"].height
         princesa["rect"].x, princesa["rect"].y = 700, 10
     else:
@@ -72,7 +94,7 @@ def juego(num_nivel=1):
     ejecutando = True
     pantalla = pygame.display.set_mode((ANCHO, ALTO))
 
-    if num_nivel == 2:
+    if num_nivel == 2 or num_nivel == 3:
         plat = plataformas[0]
         llave_x = plat.left + plat.width // 2 + 120  
         llave_y = plat.top - 35  
@@ -112,23 +134,41 @@ def juego(num_nivel=1):
         reloj.tick(FPS)
         pantalla.fill(fondo)
 
+        if num_nivel == 3:
+            tiempo_actual = pygame.time.get_ticks()
+            tiempo_restante = max(0, tiempo_limite - (tiempo_actual - tiempo_inicio) // 1000)
+            fuente = pygame.font.SysFont(None, 36)
+            texto_tiempo = fuente.render(f"Tiempo: {tiempo_restante}", True, (255, 0, 0))
+            pantalla.blit(texto_tiempo, (ANCHO // 2 - 60, 10))
+            if tiempo_restante <= 0:
+                pantalla.blit(imagen_perdiste, (0, 0))
+                pygame.display.flip()
+                pygame.time.wait(3000)
+                ejecutando = False
+                resultado = "perdiste"
+                continue
+
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 pygame.quit()
                 exit()
             elif evento.type == SPAWN_BARRIL:
                 if num_nivel == 1:
-                    for _ in range(2):
+                    for _ in range(3):  
                         tipo = random.choice(barril_tipos)
-                        barriles.append(tipo())
+                        if tipo == BarrilNivel1:
+                            barriles.append(tipo())
+                        else:
+                            plat = plataformas[0]
+                            x = plat.left + 10
+                            y = plat.top - 20
+                            barriles.append(tipo(x, y, dir=1))
                 else:
                     tipo_izq = random.choice(barril_tipos)
                     tipo_der = random.choice(barril_tipos)
-                    # Barril desde donkey_kong (izquierda, va a la derecha)
                     x_izq = donkey_kong["rect"].centerx - 10
                     y_izq = donkey_kong["rect"].bottom
                     barriles.append(tipo_izq(x_izq, y_izq, dir=1))
-                    # Barril desde donkey_kong2 (derecha, va a la izquierda)
                     x_der = donkey_kong2["rect"].centerx - 10
                     y_der = donkey_kong2["rect"].bottom
                     barriles.append(tipo_der(x_der, y_der, dir=-1))
@@ -140,7 +180,23 @@ def juego(num_nivel=1):
         jugador.actualizar(teclas)
 
         dibujar_nivel(pantalla)
-        jugador.dibujar(pantalla)
+        mostrar_jugador = True
+        if parpadeo:
+            ahora = pygame.time.get_ticks()
+            if ahora - parpadeo_timer > parpadeo_duracion:
+                parpadeo = False
+                mostrar_jugador = True
+            else:
+                if (ahora - ultimo_parpadeo) > parpadeo_intervalo:
+                    ultimo_parpadeo = ahora
+                mostrar_jugador = ((ahora - parpadeo_timer) // parpadeo_intervalo) % 2 == 0
+            if mostrar_jugador:
+                x, y = posicion_inicial_jugador()
+                jugador.rect.x = x
+                jugador.rect.y = y
+
+        if mostrar_jugador:
+            jugador.dibujar(pantalla)
         pygame.draw.rect(pantalla, donkey_kong["color"], donkey_kong["rect"])
         if num_nivel == 2:
             pygame.draw.rect(pantalla, donkey_kong2["color"], donkey_kong2["rect"])
@@ -161,38 +217,43 @@ def juego(num_nivel=1):
         else:
             pygame.draw.rect(pantalla, princesa["color"], princesa["rect"])
 
-        for b in barriles[:]:
-            b.actualizar()
-            b.dibujar(pantalla)
-            if b.colisiona_con(jugador.rect):
-                pantalla.blit(imagen_perdiste, (0, 0))
-                pygame.display.flip()
-                pygame.time.wait(3000)
-                print("¡Perdiste por barril!")
-                ejecutando = False
-                resultado = "perdiste"
-            if b.esta_fuera_de_pantalla():
-                barriles.remove(b)
-
-        if num_nivel == 2 and not llave_tomada and jugador.rect.colliderect(llave_rect):
+        if (num_nivel == 2 or num_nivel == 3) and not llave_tomada and jugador.rect.colliderect(llave_rect):
             llave_tomada = True
             puerta_abierta = True
 
-        if jugador.rect.colliderect(princesa["rect"]) and puerta_abierta:
-            pantalla.blit(imagen_nivel_superado, (0, 0))
-            pygame.display.flip()
-            pygame.time.wait(2000)
-            print("¡Ganaste!")
-            ejecutando = False
-            resultado = "ganaste"
+        for b in barriles[:]:
+            b.actualizar()
+            b.dibujar(pantalla)
+            if b.colisiona_con(jugador.rect) and not parpadeo:
+                vidas -= 1
+                if vidas > 0:
+                    parpadeo = True
+                    parpadeo_timer = pygame.time.get_ticks()
+                    ultimo_parpadeo = parpadeo_timer
+                else:
+                    pantalla.blit(imagen_perdiste, (0, 0))
+                    pygame.display.flip()
+                    pygame.time.wait(3000)
+                    print("¡Perdiste por barril!")
+                    ejecutando = False
+                    resultado = "perdiste"
+            if b.esta_fuera_de_pantalla():
+                barriles.remove(b)
 
-        if jugador.rect.colliderect(donkey_kong["rect"]) or (num_nivel == 2 and jugador.rect.colliderect(donkey_kong2["rect"])):
-            pantalla.blit(imagen_perdiste, (0, 0))
-            pygame.display.flip()
-            pygame.time.wait(3000)
-            print("¡Perdiste por mono!")
-            ejecutando = False
-            resultado = "perdiste"
+        if (jugador.rect.colliderect(donkey_kong["rect"]) or 
+            (num_nivel == 2 and jugador.rect.colliderect(donkey_kong2["rect"]))) and not parpadeo:
+            vidas -= 1
+            if vidas > 0:
+                parpadeo = True
+                parpadeo_timer = pygame.time.get_ticks()
+                ultimo_parpadeo = parpadeo_timer
+            else:
+                pantalla.blit(imagen_perdiste, (0, 0))
+                pygame.display.flip()
+                pygame.time.wait(3000)
+                print("¡Perdiste por mono!")
+                ejecutando = False
+                resultado = "perdiste"
 
         for tele_rect in tele_rects:
             if jugador.rect.colliderect(tele_rect):
@@ -202,6 +263,32 @@ def juego(num_nivel=1):
 
         for tele_rect in tele_rects:
             pygame.draw.rect(pantalla, (255, 0, 255), tele_rect)
+
+        for i in range(vidas):
+            vida_rect = pygame.Rect(20 + i*35, 15, 20, 30)
+            pygame.draw.rect(pantalla, (0, 100, 255), vida_rect)
+
+        if num_nivel == 3 and jugador.rect.colliderect(princesa["rect"]) and puerta_abierta:
+            pantalla.blit(imagen_nivel_superado, (0, 0))
+            pygame.display.flip()
+            pygame.time.wait(3000)
+            ejecutando = False
+            resultado = "ganaste"
+            continue
+        if num_nivel == 1 and jugador.rect.colliderect(princesa["rect"]):
+            pantalla.blit(imagen_nivel_superado, (0, 0))
+            pygame.display.flip()
+            pygame.time.wait(3000)
+            ejecutando = False
+            resultado = "ganaste"
+            continue
+        if num_nivel == 2 and jugador.rect.colliderect(princesa["rect"]) and puerta_abierta:
+            pantalla.blit(imagen_nivel_superado, (0, 0))
+            pygame.display.flip()
+            pygame.time.wait(3000)
+            ejecutando = False
+            resultado = "ganaste"
+            continue
 
         pygame.display.flip()
     return resultado
@@ -217,6 +304,8 @@ while True:
     if resultado == "ganaste" and nivel_actual == 1:
         nivel_actual = 2
     elif resultado == "ganaste" and nivel_actual == 2:
+        nivel_actual = 3
+    elif resultado == "ganaste" and nivel_actual == 3:
         print("¡Completaste todos los niveles!")
         break
     else:

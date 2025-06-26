@@ -27,7 +27,7 @@ def crear_nivel(nivel):
             pygame.Rect(300, 370, 40, 100),
             pygame.Rect(700, 470, 40, 110),
         ])
-    else:
+    elif nivel == 2:
         plataformas.extend([
             pygame.Rect(200, 60, 200, 20),
             pygame.Rect(400, 60, 250, 20),
@@ -49,6 +49,24 @@ def crear_nivel(nivel):
             pygame.Rect(300, 370, 40, 100),
             pygame.Rect(700, 470, 40, 110),
             pygame.Rect(100, 470, 40, 110),
+        ])
+    elif nivel == 3:
+        plataformas.extend([
+            pygame.Rect(100, 60, 600, 20),   
+            pygame.Rect(50, 150, 700, 20),    
+            pygame.Rect(150, 250, 650, 20),
+            pygame.Rect(50, 350, 700, 20),
+            pygame.Rect(200, 450, 540, 20),   
+            pygame.Rect(0, ALTO - 20, ANCHO, 20),  
+        ])
+        direcciones_plataformas.extend([1, -1, 1, -1, 1, 1])
+        escaleras.extend([
+
+            pygame.Rect(390, 80, 40, 90),   
+            pygame.Rect(120, 170, 40, 100), 
+            pygame.Rect(600, 270, 40, 100), 
+            pygame.Rect(220, 370, 40, 100), 
+            pygame.Rect(600, 470, 40, 110),
         ])
 
 def dibujar(pantalla):

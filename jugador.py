@@ -22,8 +22,13 @@ class Jugador:
         return -1
 
     def esta_alineado_con_escalera(self, escalera):
-        margen = 10
-        return escalera.left - margen <= self.rect.centerx <= escalera.right + margen
+        margen = 5
+        return (
+            self.rect.right > escalera.left + margen and
+            self.rect.left < escalera.right - margen and
+            self.rect.bottom > escalera.top and
+            self.rect.top < escalera.bottom
+        )
 
     def actualizar(self, teclas):
         self.plat_idx = self.plataforma_actual()
@@ -36,16 +41,13 @@ class Jugador:
                 escalera_candidata = escalera
                 break
 
-        # Movimiento horizontal
         if teclas[pygame.K_LEFT]:
             self.rect.x -= 3
         if teclas[pygame.K_RIGHT]:
             self.rect.x += 3
 
-        # Limita dentro de la pantalla
         self.rect.x = max(0, min(ANCHO - self.rect.width, self.rect.x))
 
-        # Movimiento vertical si está en escalera
         if self.en_escalera and not self.saltando:
             if teclas[pygame.K_UP]:
                 self.rect.y -= 3
@@ -53,7 +55,6 @@ class Jugador:
                 self.rect.y += 3
             self.vel_y = 0
         else:
-            # Física del salto y gravedad
             self.vel_y += GRAVEDAD
             self.rect.y += self.vel_y
 
@@ -67,7 +68,6 @@ class Jugador:
                         apoyado = True
                         break
 
-            # Si cae fuera de la pantalla, lo reposiciona
             if self.rect.top > ALTO:
                 self.rect.bottom = plataformas[-1].top
                 self.vel_y = 0
