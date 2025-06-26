@@ -1,6 +1,5 @@
 import pygame
 from configuracion import MARRON, CIAN, ANCHO, ALTO
-
 plataformas = []
 direcciones_plataformas = []
 escaleras = []
@@ -52,24 +51,19 @@ def crear_nivel(nivel):
         ])
     elif nivel == 3:
         plataformas.extend([
-            pygame.Rect(100, 60, 600, 20),     # y=60
-            pygame.Rect(50, 150, 700, 20),     # y=150
-            pygame.Rect(150, 250, 650, 20),    # y=250
-            pygame.Rect(50, 350, 700, 20),     # y=350
-            pygame.Rect(200, 450, 440, 20),    # y=450
-            pygame.Rect(0, ALTO - 20, ANCHO, 20),  # y=580
+            pygame.Rect(100, 60, 600, 20),      
+            pygame.Rect(50, 150, 700, 20),     
+            pygame.Rect(120, 250, 680, 20),     
+            pygame.Rect(50, 350, 700, 20),   
+            pygame.Rect(200, 450, 440, 20),     
+            pygame.Rect(0, ALTO - 20, ANCHO, 20),  
         ])
         escaleras.extend([
-            # Escalera 1: conecta plataforma 0 (y=60) y 1 (y=150)
-            pygame.Rect(390, 70, 40, 100),      # y=70, alto=100 → llega a y=170 (20px sobre la plataforma de y=150)
-            # Escalera 2: conecta plataforma 1 (y=150) y 2 (y=250)
-            pygame.Rect(120, 170, 40, 110),     # y=170, alto=110 → llega a y=280 (30px sobre la plataforma de y=250)
-            # Escalera 3: conecta plataforma 2 (y=250) y 3 (y=350)
-            pygame.Rect(600, 270, 40, 110),     # y=270, alto=110 → llega a y=380 (30px sobre la plataforma de y=350)
-            # Escalera 4: conecta plataforma 3 (y=350) y 4 (y=450) (ya funciona bien)
-            pygame.Rect(220, 370, 40, 110),     # y=370, alto=110 → llega a y=480 (30px sobre la plataforma de y=450)
-            # Escalera 5: conecta plataforma 4 (y=450) y suelo (y=580) (ya funciona bien)
-            pygame.Rect(600, 450, 40, 140),     # y=450, alto=140 → llega a y=590 (10px sobre el suelo)
+            pygame.Rect(600, 450, 40, 140),    
+            pygame.Rect(220, 350, 40, 110),     
+            pygame.Rect(600, 250, 40, 110),     
+            pygame.Rect(120, 150, 40, 110),    
+            pygame.Rect(390, 60, 40, 100),      
         ])
 
 def dibujar(pantalla):

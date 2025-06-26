@@ -6,7 +6,6 @@ from nivel import dibujar as dibujar_nivel, crear_nivel, plataformas, escaleras
 from personaje import donkey_kong, donkey_kong2, princesa
 from barril import Barril, BarrilRapido, BarrilLento, BarrilRebotador, BarrilNivel1, BarrilNivel2
 
-
 def menu_principal():
     pantalla = pygame.display.set_mode((ANCHO, ALTO))
     pygame.display.set_caption("Donkey Kong - Menú Principal")
@@ -22,7 +21,6 @@ def menu_principal():
                 exit()
             if evento.type == pygame.KEYDOWN and evento.key == pygame.K_SPACE:
                 ejecutando_menu = False
-
 
 def posicion_inicial_jugador():
     altura_jugador = 30
@@ -268,7 +266,7 @@ def juego(num_nivel=1):
             vida_rect = pygame.Rect(20 + i*35, 15, 20, 30)
             pygame.draw.rect(pantalla, (0, 100, 255), vida_rect)
 
-        if num_nivel == 3 and jugador.rect.colliderect(princesa["rect"]) and puerta_abierta:
+        if num_nivel == 3 and jugador.rect.colliderect(princesa["rect"]):
             pantalla.blit(imagen_nivel_superado, (0, 0))
             pygame.display.flip()
             pygame.time.wait(3000)
